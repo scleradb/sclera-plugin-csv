@@ -4,6 +4,8 @@ description := "Add-on package that enables Sclera to work with CSV format data"
 
 version := "4.0-SNAPSHOT"
 
+homepage := Some(url("https://github.com/scleradb/sclera-plugin-csv"))
+
 organization := "com.scleradb"
 
 organizationName := "Sclera, Inc."
