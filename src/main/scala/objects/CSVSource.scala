@@ -20,13 +20,9 @@ package com.scleradb.plugin.datasource.csv.objects
 import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 
-import java.net.URL
-import java.nio.charset.Charset
-import java.io.{File, BufferedReader, InputStreamReader}
-
 import org.apache.commons.csv.{CSVFormat, CSVRecord, CSVParser}
 
-import com.scleradb.config.ScleraConfig
+import com.scleradb.util.tools.{ContentIter, Content}
 
 import com.scleradb.sql.datatypes.Column
 import com.scleradb.sql.types.SqlCharVarying
@@ -42,49 +38,42 @@ import com.scleradb.external.objects.ExternalSource
   * @param formatOpt CSV file format (optional)
   * @param isHeaderPresent Is header present?
   * @param urlColOpt Optional column name, to contain the file name/URL
+  * @param sourcePatterns List of patterns to filter source path names
   */
 class CSVSource(
     override val name: String,
     urlStr: String,
     formatOpt: Option[String],
     isHeaderPresent: Boolean,
-    val urlColOpt: Option[String]
+    val urlColOpt: Option[String],
+    sourcePatterns: List[String]
 ) extends ExternalSource {
-    private val format: CSVFormat = {
+    val csvFormat: CSVFormat = {
         val baseFormat: CSVFormat = Format(formatOpt)
         if( isHeaderPresent ) baseFormat.withHeader() else baseFormat
     }
 
-    /** Iterator over file / directory */
-    private def fileIter(f: File): Iterator[URL] = {
-        if( f.isDirectory() ) {
-            val ufs: List[File] =
-                f.listFiles().toList.sortBy { uf => uf.getName() }
-            ufs.iterator.flatMap { uf => fileIter(uf) }
-        } else Iterator(f.toURI().toURL())
+    /** CSV from text content */
+    private def csvParser(text: String): CSVParser =
+        CSVParser.parse(text, csvFormat)
+
+    /** Fetches content from URL / files / directories */
+    private val contentIter: ContentIter = ContentIter(sourcePatterns)
+
+    /** Iterator over file / directory content */
+    private val dataIter: Iterator[Content] = contentIter.iter(urlStr)
+
+    /** Iterator head materialized upfront */
+    private val dataHead: Content = if( dataIter.hasNext ) dataIter.next else {
+        throw new IllegalArgumentException(
+            s"Could not find any content at $urlStr"
+        )
     }
 
-    /** Iterator over CSV URLs */
-    private def urlIter: Iterator[URL] = urlStr.split("://") match {
-        case Array(path) => fileIter(new File(path))
-        case Array("file", path) => fileIter(new File(path))
-        case _ => Iterator(new URL(urlStr))
-    }
-
-    /** OpenCSV CSVReader object to read CSV files */
-    private def csvParser(url: URL): CSVParser = CSVParser.parse(
-        url,
-        Charset.defaultCharset(),
-        format
-    )
-
+    /** CSV header columns -- assuming all content is structured identically */
     val headerColumns: List[Column] = {
-        val urls: Iterator[URL] = urlIter
-        if( !urls.hasNext ) {
-            throw new IllegalArgumentException("Could not find a URL")
-        }
+        val reader: CSVParser = csvParser(dataHead.text)
 
-        val reader: CSVParser = csvParser(urls.next())
         val headersOpt: Option[mutable.Map[String, Integer]] =
             Option(reader.getHeaderMap()).map { m => m.asScala }
 
@@ -112,18 +101,18 @@ class CSVSource(
       * obtained from the first line (header) of the CSV file.
       * Each column has type CHAR VARYING.
       */
-    override val columns: List[Column] = {
-        urlColOpt match {
-            case Some(urlCol) =>
-                Column(urlCol,  SqlCharVarying(None))::headerColumns
-            case None => headerColumns
-        }
+    override val columns: List[Column] = urlColOpt match {
+        case Some(urlCol) =>
+            Column(urlCol,  SqlCharVarying(None))::headerColumns
+        case None => headerColumns
     }
 
     /** CSVResult object to generate the result */
     override def result: CSVResult = {
-        val csvReaderIter: Iterator[(String, CSVParser)] =
-            urlIter.map { url => (url.toString, csvParser(url)) }
+        val iter: Iterator[Content] = Iterator(dataHead) ++ dataIter
+        val csvReaderIter: Iterator[(String, CSVParser)] = iter.map { content =>
+            (content.name, csvParser(content.text))
+        }
 
         new CSVResult(this, csvReaderIter)
     }
@@ -132,14 +121,12 @@ class CSVSource(
     override def toString: String = "%s(\"%s\")".format(name, urlStr)
 
     /** Serialize a proxy containing only the parameters */
-    def writeReplace(): java.lang.Object =
-        new SerializedCSVSource(
-            name,
-            urlStr,
-            formatOpt,
-            isHeaderPresent,
-            urlColOpt
-        )
+    def writeReplace(): java.lang.Object = new SerializedCSVSource(
+        name, urlStr, formatOpt, isHeaderPresent, urlColOpt, sourcePatterns
+    )
+
+    /** Free resources held while iterating over the source content files */
+    def close(): Unit = contentIter.close()
 }
 
 /** Proxy object used for serialization - contains only the parameters */
@@ -148,15 +135,11 @@ class SerializedCSVSource(
     urlStr: String,
     formatOpt: Option[String],
     isHeaderPresent: Boolean,
-    urlColOpt: Option[String]
+    urlColOpt: Option[String],
+    sourcePatterns: List[String]
 ) extends java.io.Serializable {
     /** Construct the CSV source object from the retrieved parameters */
-    def readResolve(): java.lang.Object =
-        new CSVSource(
-            name,
-            urlStr,
-            formatOpt,
-            isHeaderPresent,
-            urlColOpt
-        )
+    def readResolve(): CSVSource = new CSVSource(
+        name, urlStr, formatOpt, isHeaderPresent, urlColOpt, sourcePatterns
+    )
 }

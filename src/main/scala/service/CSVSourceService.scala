@@ -33,12 +33,6 @@ class CSVSourceService extends ExternalSourceService {
     override def createSource(
         params: List[ScalValueBase]
     ): CSVSource = {
-        if( params.size > 4 )
-            throw new IllegalArgumentException(
-                "Illegal number of parameters specified for \"" + id +
-                "\": " + params.size
-            )
-
         val urlStr: String = params.lift(0) match {
             case Some(CharConst(s)) if( s != "" ) => s
             case Some(v) =>
@@ -80,7 +74,19 @@ class CSVSourceService extends ExternalSourceService {
                 )
         }
 
-        new CSVSource(id, urlStr, formatOpt, isHeaderPresent, urlColOpt)
+        val sourcePatterns: List[String] = params.drop(4).map {
+            case CharConst(path) => path.toUpperCase
+            case v =>
+                throw new IllegalArgumentException(
+                    "Illegal source pattern specified for \"" + id +
+                    "\": " + v.repr
+                )
+        }
+
+        new CSVSource(
+            id, urlStr, formatOpt, isHeaderPresent, urlColOpt,
+            if( sourcePatterns.isEmpty ) List("**.csv") else sourcePatterns
+        )
     }
 }
 

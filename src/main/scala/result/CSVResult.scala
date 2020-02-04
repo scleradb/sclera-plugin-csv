@@ -100,6 +100,8 @@ class CSVResult(
     }
 
     /** Closes the reader */
-    override def close(): Unit =
+    override def close(): Unit = {
         curCsvReaderOpt.foreach { case (reader, _) => reader.close() }
+        csvSource.close()
+    }
 }
