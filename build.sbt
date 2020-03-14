@@ -21,7 +21,9 @@ licenses := Seq("Apache License version 2.0" -> url("https://www.apache.org/lice
 libraryDependencies ++= Seq(
     "org.apache.commons" % "commons-csv" % "1.7",
     "com.scleradb" %% "sclera-tools" % "4.0-SNAPSHOT" % "provided",
-    "com.scleradb" %% "sclera-core" % "4.0-SNAPSHOT" % "provided"
+    "com.scleradb" %% "sclera-core" % "4.0-SNAPSHOT" % "provided",
+    "com.scleradb" %% "sclera-config" % "4.0-SNAPSHOT" % "test",
+    "org.scalatest" %% "scalatest" % "3.1.0" % "test"
 )
 
 scalacOptions ++= Seq(
