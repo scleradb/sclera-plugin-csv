@@ -31,3 +31,5 @@ scalacOptions ++= Seq(
 )
 
 exportJars := true
+
+fork in Test := true
