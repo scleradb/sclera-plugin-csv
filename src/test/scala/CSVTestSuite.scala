@@ -46,8 +46,10 @@ class CSVTestSuite extends AnyFunSpec with CancelAfterFailure {
             )
             csv.close()
 
-            processor = Processor()
-            processor.init()
+            processor = Processor(checkSchema = false)
+            try processor.init() catch { case (_: java.sql.SQLWarning) =>
+                processor.schema.createSchema()
+            }
         }
 
         it("should execute a CSV query") {
