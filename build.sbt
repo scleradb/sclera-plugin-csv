@@ -35,4 +35,8 @@ scalacOptions ++= Seq(
 
 exportJars := true
 
+javaOptions in Test ++= Seq(
+    s"-DSCLERA_ROOT=${java.nio.file.Files.createTempDirectory("scleratest")}"
+)
+
 fork in Test := true
