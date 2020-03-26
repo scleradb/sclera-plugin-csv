@@ -31,12 +31,20 @@ import com.scleradb.exec.Processor
 
 class CSVTestSuite extends AnyFunSpec with CancelAfterFailure {
     var processor: Processor = null
-
-    val csvFile: File = File.createTempFile("test", "csv")
-    val csvFileName: String = csvFile.getAbsolutePath()
+    var csvFile: File = null
 
     describe("CSV Query Processing") {
         it("should setup") {
+            processor = Processor(checkSchema = false)
+            try processor.init() catch { case (_: java.sql.SQLWarning) =>
+                processor.schema.createSchema()
+            }
+        }
+
+        it("should create csv") {
+            csvFile = File.createTempFile("test", "csv")
+            csvFile.deleteOnExit()
+
             val csv: PrintWriter = new PrintWriter(csvFile)
             csv.write(
                 """|FIELD1, field2, FIELD3
@@ -44,17 +52,13 @@ class CSVTestSuite extends AnyFunSpec with CancelAfterFailure {
                    |3, 4, foo bar
                    |""".stripMargin
             )
-            csv.close()
 
-            processor = Processor(checkSchema = false)
-            try processor.init() catch { case (_: java.sql.SQLWarning) =>
-                processor.schema.createSchema()
-            }
+            csv.close()
         }
 
         it("should execute a CSV query") {
             val query: String =
-                "select * from external csv ('" + csvFileName + "')"
+                s"select * from external csv ('${csvFile.getAbsolutePath()}')"
 
             val parseResult: List[SqlStatement] =
                 processor.parser.parseSqlStatements(query)
@@ -86,8 +90,7 @@ class CSVTestSuite extends AnyFunSpec with CancelAfterFailure {
         }
 
         it("should teardown") {
-            csvFile.delete()
-            processor.close()
+            Option(processor).foreach(_.close())
         }
     }
 }
