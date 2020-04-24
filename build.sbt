@@ -15,7 +15,7 @@ version := "4.0-SNAPSHOT"
 
 startYear := Some(2012)
 
-scalaVersion := "2.13.2"
+scalaVersion := "2.13.1"
 
 licenses := Seq("Apache License version 2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt"))
 
