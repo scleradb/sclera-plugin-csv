@@ -1,6 +1,8 @@
 # Sclera - CSV Connector
 
 [![Build Status](https://travis-ci.org/scleradb/sclera-plugin-csv.svg?branch=master)](https://travis-ci.org/scleradb/sclera-plugin-csv)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.scleradb/sclera-plugin-csv_2.13/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.scleradb/sclera-plugin-csv_2.13)
+[![scaladoc](https://javadoc.io/badge2/com.scleradb/sclera-plugin-csv_2.13/scaladoc.svg)](https://javadoc.io/doc/com.scleradb/sclera-plugin-csv_2.13)
 
 Enables Sclera to work with [CSV format](http://en.wikipedia.org/wiki/Comma-separated_values) data.
 
