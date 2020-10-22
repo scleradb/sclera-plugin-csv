@@ -64,11 +64,12 @@ class CSVSource(
     private val dataIter: Iterator[Content] = contentIter.iter(urlStr)
 
     /** Iterator head materialized upfront */
-    private val dataHead: Content = if( dataIter.hasNext ) dataIter.next else {
-        throw new IllegalArgumentException(
-            s"Could not find any content at $urlStr"
-        )
-    }
+    private val dataHead: Content =
+        if( dataIter.hasNext ) dataIter.next() else {
+            throw new IllegalArgumentException(
+                s"Could not find any content at $urlStr"
+            )
+        }
 
     /** CSV header columns -- assuming all content is structured identically */
     val headerColumns: List[Column] = {
