@@ -17,8 +17,6 @@
 
 package com.scleradb.plugin.datasource.csv.objects
 
-import scala.language.postfixOps
-
 import java.io.{File, FileWriter}
 
 import org.apache.commons.csv.{CSVFormat, CSVPrinter}
@@ -38,7 +36,8 @@ class CSVTarget(
     fileName: String,
     formatOpt: Option[String]
 ) extends ExternalTarget {
-    private val format: CSVFormat = Format(formatOpt)
+    private val format: CSVFormat =
+        CSVFormat.valueOf(formatOpt getOrElse "DEFAULT")
 
     override def write(ts: TableResult): Unit = {
         val writer: CSVPrinter =
@@ -66,27 +65,4 @@ class CSVTarget(
 
     /** String used for this target in the EXPLAIN output */
     override def toString: String = "%s(\"%s\")".format(name, fileName)
-
-    /** Serialize a proxy containing only the parameters */
-    def writeReplace(): java.lang.Object =
-        new SerializedCSVTarget(
-            name,
-            fileName,
-            formatOpt
-        )
-}
-
-/** Proxy object used for serialization - contains only the parameters */
-class SerializedCSVTarget(
-    name: String,
-    fileName: String,
-    formatOpt: Option[String]
-) extends java.io.Serializable {
-    /** Construct the CSV target object from the retrieved parameters */
-    def readResolve(): java.lang.Object =
-        new CSVTarget(
-            name,
-            fileName,
-            formatOpt
-        )
 }

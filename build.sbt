@@ -11,6 +11,8 @@ scmInfo := Some(
     )
 )
 
+versionScheme := Some("early-semver")
+
 version := "4.1-SNAPSHOT"
 
 startYear := Some(2012)
@@ -19,13 +21,16 @@ scalaVersion := "2.13.3"
 
 licenses := Seq("Apache License version 2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt"))
 
-resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+resolvers ++= Seq(
+    "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
+    Resolver.mavenLocal
+)
 
 libraryDependencies ++= Seq(
     "org.apache.commons" % "commons-csv" % "1.8",
-    "com.scleradb" %% "sclera-tools" % "4.0" % "provided",
-    "com.scleradb" %% "sclera-core" % "4.0" % "provided",
-    "com.scleradb" %% "sclera-config" % "4.0" % "test",
+    "com.scleradb" %% "sclera-io" % "4.1-SNAPSHOT" % "provided",
+    "com.scleradb" %% "sclera-core" % "4.1-SNAPSHOT" % "provided",
+    "com.scleradb" %% "sclera-config" % "4.1-SNAPSHOT" % "test",
     "org.scalatest" %% "scalatest" % "3.1.1" % "test"
 )
 
