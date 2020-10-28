@@ -22,7 +22,12 @@ import scala.jdk.CollectionConverters._
 import org.apache.commons.csv.CSVRecord
 import com.scleradb.util.io.Content
 
-/** Iterator over the CSV records across all content */
+/** Iterator over the CSV records across all content
+  *
+  * @param contentIter Iterator over the CSV content
+  * @param formatOpt CSV file format
+  * @param isHeaderPresent Is header present?
+  */
 class CSVRecordIter(
     contentIter: Iterator[Content],
     formatOpt: Option[String],

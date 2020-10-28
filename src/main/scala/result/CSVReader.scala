@@ -25,8 +25,9 @@ import com.scleradb.util.io.Content
 
 /** Encapsulates a CSV Reader
   *
-  * @param content Content of CSV data
+  * @param content CSV content
   * @param formatOpt CSV file format
+  * @param isHeaderPresent Is header present?
   * @param charSet Charset needed for parsing the content into CSV records
   */
 class CSVReader(
