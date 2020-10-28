@@ -18,9 +18,7 @@
 package com.scleradb.plugin.datasource.csv.result
 
 import java.nio.charset.Charset
-
 import scala.jdk.CollectionConverters._
-
 import org.apache.commons.csv.{CSVFormat, CSVRecord, CSVParser}
 
 import com.scleradb.util.io.Content
